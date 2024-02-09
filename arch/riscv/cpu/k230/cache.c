@@ -89,17 +89,19 @@
 #define CACHE_INV_ADDR_Pos                     5U
 #define CACHE_INV_ADDR_Msk                     (0xFFFFFFFFUL << CACHE_INV_ADDR_Pos)
 
+// mhcr is 0x7c1
+
 __ALWAYS_STATIC_INLINE uint64_t __get_MHCR(void)
 {
     uint64_t result;
 
-    __ASM volatile("csrr %0, mhcr" : "=r"(result));
+    __ASM volatile("csrr %0, 0x7c1" : "=r"(result));
     return (result);
 }
 
 __ALWAYS_STATIC_INLINE void __set_MHCR(uint64_t mhcr)
 {
-    __ASM volatile("csrw mhcr, %0" : : "r"(mhcr));
+    __ASM volatile("csrw 0x7c1, %0" : : "r"(mhcr));
 }
 /**
   \brief   Instruction Synchronization Barrier
