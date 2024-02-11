@@ -256,131 +256,6 @@ int k230_img_boot_sys_bin(firmware_head_s * fhBUff)
     return 0;
 }
 
-static int k230_check_and_get_plain_data_securiy(firmware_head_s *pfh, ulong *pplain_addr)
-{
-    int ret = 0;
-    pufs_dgst_st md;
-    char * pplaint=(char *)CONFIG_PLAIN_ADDR; //明文、0x0 0x8000000 0x0 0x7fff000
-    unsigned int outlen;
-    uint8_t puk_hash_otp[32];
-    uint8_t temp32_0[32]={0};
-
-    const char *gcm_iv = "\x9f\xf1\x85\x63\xb9\x78\xec\x28\x1b\x3f\x27\x94";
-    const char *sm4_iv = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f";
-    const char *gcm_key = "\x24\x50\x1a\xd3\x84\xe4\x73\x96\x3d\x47\x6e\xdc\xfe\x08\x20\x52\x37\xac\xfd\x49\xb5\xb8\xf3\x38\x57\xf8\x11\x4e\x86\x3f\xec\x7f";
-    pufs_ec_point_st puk;
-    pufs_ecdsa_sig_st sig;
-
-    if(pfh->crypto_type == INTERNATIONAL_SECURITY) {
-        K230_dbg(" INTERNATIONAL_SECURITY aes \n");
-        // 检验头携带的RSA2048/SM2的 public key是否正确，与烧录到OTP里面的PUK HASH值做比对。
-        // 直接把public key烧录到OTP也可以，但是需要消耗2Kbit的OTP空间，这里主要是节约otp空间考虑。
-        // 把PUK HASH烧录到OTP，可以保证只有经过PRK签名的固件才可以正常启动。
-        if(SUCCESS != cb_pufs_read_otp(puk_hash_otp, 32, OTP_BLOCK_RSA_PUK_HASH_ADDR)){
-            printf("otp read puk hash error \n");
-            return -6;
-        }
-        if(0 == memcmp(temp32_0, puk_hash_otp,32)){
-            printf("you have not input otp key,not support security boot\n");
-            return -18;
-        }
-        if (cb_pufs_hash(&md, (const uint8_t*)&pfh->verify, 256 + 4, SHA_256) != SUCCESS){
-            printf("hash calc error \n");
-            return -7;
-        }
-        //验证公钥是否正确
-        if(  memcmp(md.dgst, puk_hash_otp, 32)){
-            printf("pubk hash error \n");
-            return -8;
-        }
-
-        //使用公钥验证mac签名
-        char *gcm_tag = (char *)(pfh+1) + pfh->length - 16;
-        ret = pufs_rsa_p1v15_verify(pfh->verify.rsa.signature, 
-                                    RSA2048, 
-                                    pfh->verify.rsa.n, 
-                                    pfh->verify.rsa.e, 
-                                    gcm_tag, 
-                                    16);
-        if (ret ) {
-            printf("rsa verify error \n");
-            return -9;
-        } 
-
-        //gcm解密,同时保证完整性；获取明文        
-        ret = pufs_dec_gcm((uint8_t *)pplaint, &outlen, (const uint8_t *)(pfh+1), pfh->length - 16,
-             AES, OTPKEY, OTPKEY_2, 256, (const uint8_t *)gcm_iv, 12, NULL, 0, gcm_tag, 16);
-        if (ret )  {
-            printf("dec gcm error ret=%x \n",ret);
-            return -10;
-        }            
-
-        //pUimgh = (image_header_t *)(pplaint);    
-        if(pplain_addr) 
-            *pplain_addr = (ulong)pplaint;
-        
-    }else if (pfh->crypto_type == CHINESE_SECURITY){
-        K230_dbg("CHINESE_SECURITY sm\n");
-        if(SUCCESS != cb_pufs_read_otp(puk_hash_otp, 32, OTP_BLOCK_SM2_PUK_HASH_ADDR)){
-            printf("otp read puk hash error \n");
-            return -6;
-        }
-         if(0 == memcmp(temp32_0, puk_hash_otp,32)){
-            printf("you have not input otp key,not support security boot\n");
-            return -18;
-        }
-        if (cb_pufs_hash(&md, (const uint8_t *)&pfh->verify, 512 + 4 - 32 - 32, SM3) != SUCCESS){
-            printf("hash calc error \n");
-            return -7;
-        }
-        //验证公钥是否正确
-        if(memcmp(md.dgst, puk_hash_otp, 32)){
-            printf("pubk hash error \n");
-            return -8;
-        }
-
-        //SM2 解密hash验签        
-        puk.qlen = sig.qlen = 32;
-        memcpy(puk.x, pfh->verify.sm2.pukx, puk.qlen);
-        memcpy(puk.y, pfh->verify.sm2.puky, puk.qlen);
-        memcpy(sig.r, pfh->verify.sm2.r, sig.qlen);
-        memcpy(sig.s, pfh->verify.sm2.s, sig.qlen);
-        if(cb_pufs_sm2_verify(sig,  (const uint8_t *)(pfh+1), pfh->length, 
-                                pfh->verify.sm2.id, pfh->verify.sm2.idlen, puk) != SUCCESS){
-            printf("sm verify error\n");                                    
-            return -11;
-        }
-
-        //SM4 CBC 解密
-        if(cb_pufs_dec_cbc((uint8_t *)pplaint, &outlen, (const uint8_t *)(pfh+1), pfh->length, 
-            SM4, OTPKEY, OTPKEY_4, 128, (const uint8_t *)sm4_iv, 0) != SUCCESS){
-            printf("dec cbc  error\n");     
-            return -12;
-        } 
-        if(pplain_addr) 
-            *pplain_addr = (ulong)pplaint;     
-    }
-    else if(pfh->crypto_type == GCM_ONLY) {
-        K230_dbg(" POC GCM_ONLY \n");
-        char *gcm_tag = (char *)(pfh+1) + pfh->length - 16;
-
-        //gcm解密,同时保证完整性；获取明文        
-        ret = pufs_dec_gcm_poc((uint8_t *)pplaint, &outlen, (const uint8_t *)(pfh+1), pfh->length - 16,
-             AES, SSKEY, (const uint8_t *)gcm_key, 256, (const uint8_t *)gcm_iv, 12, NULL, 0, (uint8_t *)gcm_tag, 16);
-        if (ret )  {
-            printf("dec gcm error ret=%x \n",ret);
-            return -10;
-        }
-
-        if(pplain_addr) 
-            *pplain_addr = (ulong)pplaint;
-    }           
-    else 
-        return -10;
-
-    return 0;
-}
-
 //去掉k230 fireware头信息，完整性校验，解密；
 static int k230_check_and_get_plain_data(firmware_head_s *pfh, ulong *pplain_addr)
 {
@@ -421,9 +296,7 @@ static int k230_check_and_get_plain_data(firmware_head_s *pfh, ulong *pplain_add
             *pplain_addr = (ulong)pfh + sizeof(*pfh) ; 
 
         ret = 0;    
-	} else if((pfh->crypto_type  == CHINESE_SECURITY)|| (pfh->crypto_type  == INTERNATIONAL_SECURITY) || (pfh->crypto_type  == GCM_ONLY))
-        ret = k230_check_and_get_plain_data_securiy(pfh, pplain_addr);
-    else  {
+	} else  {
         printf("error crypto type =%x\n", pfh->crypto_type);
         return -9;
     } 
