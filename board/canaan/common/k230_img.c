@@ -219,10 +219,11 @@ static int k230_boot_uboot_uimage(image_header_t *pUh)
 
         uboot = (void (*)(ulong, void *))(ulong)image_get_load(pUh);
         //do_timeinfo(0,0,0,0); 
-        #if defined(CONFIG_LINUX_RUN_CORE_ID) && (CONFIG_LINUX_RUN_CORE_ID == 1)
+
+        // 大核心直接启动linux 启动的小核心直接空载sleep
         de_reset_big_core(image_get_load(pUh));
         while(1) udelay(100);
-        #endif 
+
         uboot(0, (void*)OPENSBI_DTB_ADDR);
     }
     return 0;
