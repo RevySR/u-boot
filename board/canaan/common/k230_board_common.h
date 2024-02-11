@@ -43,10 +43,7 @@ unsigned long get_CONFIG_PLAIN_ADDR(void);
 #define MAGIC_NUM   0x3033324B // "K230"
 
 typedef enum {
-    NONE_SECURITY = 0,
-    GCM_ONLY,
-    CHINESE_SECURITY,
-    INTERNATIONAL_SECURITY
+    NONE_SECURITY = 0
 } crypto_type_e;
 
 typedef struct __firmware_head_st
@@ -55,20 +52,7 @@ typedef struct __firmware_head_st
     uint32_t length; // 从存储介质读到SRAM的数据量
     crypto_type_e crypto_type; // 支持国密或国际加密算法，或支持不加密启动(otp可以控制是否支持)。
     // 设想这样一个场景，如果固件只使用对称加密，在工厂批量生产的时候，解密密钥必然会泄露给工厂。如果使用非对称加密就可以这种问题了，只需要把公钥交给工厂。
-    union verify_{ 
-        struct rsa_{
-            uint8_t n[256];// 非对称加密的验签，防止固件被篡改。同时其HASH值会被烧录到otp。
-            uint32_t e;
-            uint8_t signature[256];
-        } rsa;
-        struct sm2_{
-            uint32_t idlen;
-            uint8_t id[512-32*4];
-            uint8_t pukx[32];
-            uint8_t puky[32];
-            uint8_t r[32];
-            uint8_t s[32];
-        } sm2;
+    union verify_{
         struct none_sec_{
             uint8_t signature[32];// 计算HASH保证启动固件的完整性。避免程序异常难以定位原因。
             uint8_t reserved[516-32];
