@@ -595,16 +595,7 @@ __weak int k230_img_load_boot_sys_auot_boot(en_boot_sys_t sys)
     k230_img_load_boot_sys(BOOT_RTAPP);
     #endif 
     
-    #if !defined(CONFIG_SUPPORT_LINUX)
-    if(ret == 0)
-        while(1) udelay(100);
-    #endif 
-
-
-
-    #if  defined(CONFIG_SUPPORT_LINUX)
     ret += k230_img_load_boot_sys(BOOT_SYS_LINUX);
-    #endif 
     
     return ret;
 }

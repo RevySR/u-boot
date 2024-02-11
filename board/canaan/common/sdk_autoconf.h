@@ -19,7 +19,6 @@
 #define CONFIG_MEM_LINUX_SYS_SIZE 0x20000000
 #define CONFIG_LINUX_DEFCONFIG "k230_evb_linux_enable_vector"
 #define CONFIG_TOOLCHAIN_PREFIX_RTT "riscv64-unknown-linux-musl-"
-#define CONFIG_SUPPORT_LINUX 1
 #define CONFIG_UBOOT_DEFCONFIG "k230_canmv"
 #define CONFIG_BUILD_DEBUG_VER 1
 #define CONFIG_DBGLV 8
