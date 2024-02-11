@@ -54,7 +54,6 @@
 #include <linux/delay.h>
 
 static int k230_check_and_get_plain_data(firmware_head_s *pfh, ulong *pplain_addr);
-static int k230_boot_rtt_uimage(image_header_t *pUh);
 
 #define LINUX_KERNEL_IMG_MAX_SIZE  (25*1024*1024)
 
@@ -137,26 +136,6 @@ static int  de_reset_big_core(ulong core_run_addr)
     writel(0x10000, (void *)0x9110100cULL); ////清 reset bit  
     //printf("0x9110100c =%x\n", readl( (void*)0x9110100cULL));
     //printf("reset big hart\n");
-    return 0;
-}
-/**
- * @brief 
- * 
- * @param pUh  image_header_t *
- * @return int 
- */
-static int k230_boot_rtt_uimage(image_header_t *pUh)
-{
-    int ret = 0;
-    //小核是0，大核是1；
-    ulong len = image_get_size(pUh);
-    ulong data;
-
-    image_multi_getimg(pUh, 0, &data, &len);
-    ret = k230_boot_decomp_to_load_addr(pUh, 0x6000000, data, &len );
-    if( ret == 0){
-        de_reset_big_core(image_get_load(pUh));
-    }
     return 0;
 }
 
@@ -268,8 +247,6 @@ int k230_img_boot_sys_bin(firmware_head_s * fhBUff)
     //解压缩，引导；
      if ( (0 == strcmp(image_get_name(pUh), "linux") ) || (0 == strcmp(image_get_name(pUh), "Linux") ) ){ 
         ret = k230_boot_linux_uimage(pUh);
-    }else if(0 == strcmp(image_get_name(pUh), "rtt")){        
-        ret = k230_boot_rtt_uimage(pUh);       
     }else if(0 == strcmp(image_get_name(pUh), "uboot")){        
         ret = k230_boot_uboot_uimage(pUh);       
     } else  {        
