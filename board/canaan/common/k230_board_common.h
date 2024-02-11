@@ -63,7 +63,7 @@ typedef struct __firmware_head_st
 
 typedef enum _en___boot_type{
 	BOOT_SYS_LINUX,  
-	BOOT_SYS_RTT, 
+	BOOT_SYS_RTT_DELETE, 
     BOOT_QUICK_BOOT_CFG,
     BOOT_FACE_DB,
     BOOT_SENSOR_CFG,

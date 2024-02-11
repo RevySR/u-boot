@@ -314,9 +314,6 @@ __weak ulong get_blk_start_by_boot_firmre_type(en_boot_sys_t sys)
 	case BOOT_SYS_LINUX:
 		blk_s = LINUX_SYS_IN_IMG_OFF_SEC;
 		break;
-	case BOOT_SYS_RTT:
-		blk_s = RTT_SYS_IN_IMG_OFF_SEC;
-		break;
     case BOOT_SYS_UBOOT:
 		blk_s = CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR;
 		break;
@@ -379,11 +376,6 @@ __weak ulong get_flash_offset_by_boot_firmre_type(en_boot_sys_t sys)
 	case BOOT_SYS_LINUX:
         #ifdef CONFIG_SPI_NOR_LK_BASE
 		offset = CONFIG_SPI_NOR_LK_BASE;
-        #endif 
-		break;
-	case BOOT_SYS_RTT:
-        #ifdef CONFIG_SPI_NOR_RTTK_BASE
-		offset = CONFIG_SPI_NOR_RTTK_BASE;
         #endif 
 		break;
     case BOOT_QUICK_BOOT_CFG:
@@ -471,9 +463,6 @@ __weak ulong get_nand_start_by_boot_firmre_type(en_boot_sys_t sys)
     switch (sys){
 	case BOOT_SYS_LINUX:
 		blk_s = LINUX_SYS_IN_SPI_NAND_OFF;
-		break;
-	case BOOT_SYS_RTT:
-		blk_s = RTT_SYS_IN_SPI_NAND_OFF;
 		break;
     case BOOT_SYS_UBOOT:
 		blk_s = CONFIG_SYS_SPI_U_BOOT_OFFS;
@@ -605,14 +594,8 @@ __weak int k230_img_load_boot_sys_auot_boot(en_boot_sys_t sys)
     k230_img_load_boot_sys(BOOT_SPECKLE);
     k230_img_load_boot_sys(BOOT_RTAPP);
     #endif 
-
-
-    #if  defined(CONFIG_SUPPORT_RTSMART)
-    ret += k230_img_load_boot_sys(BOOT_SYS_RTT); 
-    #endif  
-
     
-    #if  defined(CONFIG_SUPPORT_RTSMART) && !defined(CONFIG_SUPPORT_LINUX)
+    #if !defined(CONFIG_SUPPORT_LINUX)
     if(ret == 0)
         while(1) udelay(100);
     #endif 

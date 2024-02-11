@@ -129,9 +129,7 @@ static int k230_boot_prepare_args(int argc, char *const argv[], ulong buff,
         *bootmod=sysctl_boot_get_boot_mode();
 
 
-    if(!strcmp(argv[2], "rtt"))
-        *sys = BOOT_SYS_RTT;
-    else if (!strcmp(argv[2], "linux"))
+    if (!strcmp(argv[2], "linux"))
         *sys=BOOT_SYS_LINUX;
     else if (!strcmp(argv[2], "qbc"))
         *sys=BOOT_QUICK_BOOT_CFG;
