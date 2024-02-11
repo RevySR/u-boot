@@ -90,7 +90,6 @@ unsigned long get_CONFIG_PLAIN_ADDR(void)
     return ret;    
 }
 
-#define USE_UBOOT_BOOTARGS 
 #define OPENSBI_DTB_ADDR ( CONFIG_MEM_LINUX_SYS_BASE +0x2000000)
 #define RAMDISK_ADDR ( CONFIG_MEM_LINUX_SYS_BASE +0x2000000 + 0X100000)
 
@@ -98,30 +97,6 @@ unsigned long get_CONFIG_PLAIN_ADDR(void)
 
 sysctl_boot_mode_e g_bootmod = SYSCTL_BOOT_MAX;
 
-#ifdef USE_UBOOT_BOOTARGS
-__weak char *fdt_chosen_bootargs(void)
-{
-	return NULL;
-}
-//weak function
-char *board_fdt_chosen_bootargs(void){
-    char *bootargs = env_get("bootargs");
-    if(NULL == bootargs) {
-        if((bootargs = fdt_chosen_bootargs())!=NULL)
-            return bootargs;
-        if(g_bootmod == SYSCTL_BOOT_SDIO0)
-            bootargs = "root=/dev/mmcblk0p3 loglevel=8 rw rootdelay=4 rootfstype=ext4 console=ttyS0,115200 crashkernel=256M-:128M earlycon=sbi";
-        else if(g_bootmod == SYSCTL_BOOT_SDIO1)
-            bootargs = "root=/dev/mmcblk1p3 loglevel=8 rw rootdelay=4 rootfstype=ext4 console=ttyS0,115200 crashkernel=256M-:128M earlycon=sbi";
-        else  if(g_bootmod == SYSCTL_BOOT_NORFLASH)
-            //bootargs = "root=/dev/mtdblock9 rw rootwait rootfstype=jffs2 console=ttyS0,115200 earlycon=sbi";
-            //bootargs = "ubi.mtd=9 rootfstype=ubifs rw root=ubi0_0 console=ttyS0,115200 earlycon=sbi";
-            bootargs = "ubi.mtd=9 rootfstype=ubifs rw root=ubi0_0 console=ttyS0,115200 earlycon=sbi fw_devlink=off quiet";
-    }
-    //printf("%s\n",bootargs);
-    return bootargs;
-}
-#endif 
 static int k230_boot_decomp_to_load_addr(image_header_t *pUh, ulong des_len, ulong data , ulong *plen)
 {
     int ret = 0;
@@ -207,10 +182,7 @@ static int k230_boot_linux_uimage(image_header_t *pUh)
           //dtb
         image_multi_getimg(pUh, 2, &dtb, &len);
         image_multi_getimg(pUh, 1, &rd, &rd_len);
-        #ifdef USE_UBOOT_BOOTARGS
-        len = fdt_shrink_to_minimum((void*)dtb,0x100);
-        ret = fdt_chosen((void*)dtb);
-        #endif 
+
         memmove((void*)OPENSBI_DTB_ADDR, (void *)dtb, len);
 
         #ifndef CONFIG_SPL_BUILD
