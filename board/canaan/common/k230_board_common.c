@@ -61,12 +61,6 @@ enum env_location arch_env_get_location(enum env_operation op, int prio)
         return ENVL_UNKNOWN;
     }
 
-    if(g_bootmod ==  SYSCTL_BOOT_NORFLASH){
-        return ENVL_SPI_FLASH;
-    }
-    if(g_bootmod ==  SYSCTL_BOOT_NANDFLASH){
-        return ENVL_SPINAND;
-    }
 	return ENVL_MMC;
 }
 #ifndef CONFIG_SPL_BUILD
@@ -121,36 +115,17 @@ static int k230_boot_prepare_args(int argc, char *const argv[], ulong buff,
         *bootmod=SYSCTL_BOOT_SDIO1;
     else if (!strcmp(argv[1], "emmc"))
         *bootmod=SYSCTL_BOOT_SDIO0;
-    else if (!strcmp(argv[1], "spinor"))
-        *bootmod=SYSCTL_BOOT_NORFLASH;
-    else if (!strcmp(argv[1], "spinand"))
-        *bootmod=SYSCTL_BOOT_NANDFLASH;
     else if (!strcmp(argv[1], "auto"))
         *bootmod=sysctl_boot_get_boot_mode();
 
-
     if (!strcmp(argv[2], "linux"))
         *sys=BOOT_SYS_LINUX;
-    else if (!strcmp(argv[2], "qbc"))
-        *sys=BOOT_QUICK_BOOT_CFG;
-    else if (!strcmp(argv[2], "fdb"))
-        *sys=BOOT_FACE_DB;
-    else if (!strcmp(argv[2], "sensor"))
-        *sys=BOOT_SENSOR_CFG;
-    else if (!strcmp(argv[2], "ai"))
-        *sys=BOOT_AI_MODE;
-    else if (!strcmp(argv[2], "speckle"))
-        *sys=BOOT_SPECKLE;
-    else if (!strcmp(argv[2], "rtapp"))
-        *sys=BOOT_RTAPP;
     else if (!strcmp(argv[2], "uboot"))
         *sys=BOOT_SYS_UBOOT;
     else if (!strcmp(argv[2], "auto_boot"))
         *sys=BOOT_SYS_AUTO;
 
-
     return 0;
-
 }
 
 
@@ -182,17 +157,11 @@ static int do_k230_boot(struct cmd_tbl *cmdtp, int flag, int argc,
     return ret;
 }
 
-#define K230_BOOT_HELP  " <auto|sd|emmc|spinor|spinand|mem> <auto_boot|rtt|linux|qbc|fdb|sensor|ai|speckle|rtapp|uboot|addr> [len]\n" \
-                        "qbc---quick boot cfg\n" \
-                        "fdb---face database\n" \
-                        "sensor---sensor cfg\n" \
-                        "ai---ai mode cfg\n" \
-                        "speckle---speckle cfg\n" \
-                        "rtapp---rtt app\n" \
+#define K230_BOOT_HELP  " <auto|sd|emmc|mem> <auto_boot|linux|uboot|addr> [len]\n" \
                         "auto_boot---auto boot\n" \
                         "uboot---boot uboot\n"
 /*
-boot sd/mmc/spinor/spinand/mem  add
+boot sd/mmc/mem  add
 k230_boot auto rtt ;k230_boot auto linux;
 先实现从sd启动吧；
 */
@@ -202,7 +171,3 @@ U_BOOT_CMD_COMPLETE(
 	K230_BOOT_HELP, NULL
 );
 #endif
-
-
-
-
