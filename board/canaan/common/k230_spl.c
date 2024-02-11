@@ -46,7 +46,6 @@
 #include <init.h>
 #include "k230_board_common.h"
 #include "mmc.h"
-#include "sdk_autoconf.h"
 
 //weak
 void board_boot_order(u32 *spl_boot_list)

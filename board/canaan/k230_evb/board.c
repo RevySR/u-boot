@@ -18,8 +18,6 @@
 #include <pufs_sp38a.h>
 #include <pufs_sp38d.h>
 #include <linux/kernel.h>
-// #include "sdk_autoconf.h"
-// #include "k230_board_common.h"
 #include <env_internal.h>
 
 //必须实现；board_r 会调用；

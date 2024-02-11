@@ -50,20 +50,14 @@
 #include <spi.h>
 #include <nand.h>
 #include <linux/mtd/mtd.h>
-#include "sdk_autoconf.h"
 #include <linux/delay.h>
 
 static int k230_check_and_get_plain_data(firmware_head_s *pfh, ulong *pplain_addr);
 
 #define LINUX_KERNEL_IMG_MAX_SIZE  (25*1024*1024)
 
-#ifndef CONFIG_MEM_LINUX_SYS_SIZE 
-#define  CONFIG_MEM_LINUX_SYS_SIZE  CONFIG_MEM_RTT_SYS_SIZE
-#endif 
-
-#ifndef CONFIG_MEM_LINUX_SYS_BASE 
-#define  CONFIG_MEM_LINUX_SYS_BASE CONFIG_MEM_RTT_SYS_BASE
-#endif 
+#define CONFIG_MEM_LINUX_SYS_BASE 0x00000000
+#define CONFIG_MEM_LINUX_SYS_SIZE 0x20000000
 
 unsigned long get_CONFIG_CIPHER_ADDR(void)
 {
@@ -91,8 +85,6 @@ unsigned long get_CONFIG_PLAIN_ADDR(void)
 
 #define OPENSBI_DTB_ADDR ( CONFIG_MEM_LINUX_SYS_BASE +0x2000000)
 #define RAMDISK_ADDR ( CONFIG_MEM_LINUX_SYS_BASE +0x2000000 + 0X100000)
-
-#define SUPPORT_MMC_LOAD_BOOT
 
 sysctl_boot_mode_e g_bootmod = SYSCTL_BOOT_MAX;
 
@@ -270,8 +262,6 @@ static int k230_check_and_get_plain_data(firmware_head_s *pfh, ulong *pplain_add
 
 //mmc
 
-
-#ifdef SUPPORT_MMC_LOAD_BOOT
 __weak ulong get_blk_start_by_boot_firmre_type(en_boot_sys_t sys)
 {
     ulong blk_s = IMG_PART_NOT_EXIT;
@@ -328,8 +318,6 @@ static int k230_load_sys_from_mmc_or_sd(en_boot_sys_t sys, ulong buff)//(ulong o
     return 0;
 }
 
-#endif  //SUPPORT_MMC_LOAD_BOOT
-
 int k230_img_load_sys_from_dev(en_boot_sys_t sys, ulong buff)
 {
     int ret = 0;
@@ -342,17 +330,7 @@ int k230_img_load_sys_from_dev(en_boot_sys_t sys, ulong buff)
 __weak int k230_img_load_boot_sys_auot_boot(en_boot_sys_t sys)
 {
     int ret = 0;
-    #if defined(CONFIG_SPI_NOR_SUPPORT_CFG_PARAM)
-    k230_img_load_boot_sys(BOOT_QUICK_BOOT_CFG);
-    k230_img_load_boot_sys(BOOT_FACE_DB);
-    k230_img_load_boot_sys(BOOT_SENSOR_CFG);
-    k230_img_load_boot_sys(BOOT_AI_MODE);
-    k230_img_load_boot_sys(BOOT_SPECKLE);
-    k230_img_load_boot_sys(BOOT_RTAPP);
-    #endif 
-    
     ret += k230_img_load_boot_sys(BOOT_SYS_LINUX);
-    
     return ret;
 }
 /**
@@ -380,4 +358,3 @@ int k230_img_load_boot_sys(en_boot_sys_t sys)
     }
     return ret;
 }
-
