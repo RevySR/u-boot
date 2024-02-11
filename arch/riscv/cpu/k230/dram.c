@@ -94,10 +94,6 @@ void pi_ddr_init_2133(void);
 
 __weak int ddr_init_training(void)
 {
-	#if defined(CONFIG_TARGET_K230_FPGA) 
-		return 0; //fpga not need init;
-	#endif
-
 	if( (readl((const volatile void __iomem *)0x980001bcULL) & 0x1 ) != 0 ){ 
 		return 0; //have init ,not need reinit;
 	}

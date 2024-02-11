@@ -1,7 +1,5 @@
 ifndef CONFIG_SPL_BUILD
-	ifndef  CONFIG_TARGET_K230_FPGA
 	INPUTS-y += add_firmware_head
-	endif  
 endif 
 add_firmware_head: u-boot.bin spl/u-boot-spl.bin u-boot.img 
 	#给一级boot增加bootrom头

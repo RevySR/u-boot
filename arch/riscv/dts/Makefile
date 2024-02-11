@@ -7,7 +7,6 @@ dtb-$(CONFIG_TARGET_OPENPITON_RISCV64) += openpiton-riscv64.dtb
 dtb-$(CONFIG_TARGET_SIFIVE_UNLEASHED) += hifive-unleashed-a00.dtb
 dtb-$(CONFIG_TARGET_SIFIVE_UNMATCHED) += hifive-unmatched-a00.dtb
 dtb-$(CONFIG_TARGET_SIPEED_MAIX) += k210-maix-bit.dtb
-dtb-$(CONFIG_TARGET_K230_FPGA) += k230_fpga.dtb
 dtb-$(CONFIG_TARGET_K230_EVB) += k230_evb.dtb
 
 include $(srctree)/scripts/Makefile.dts
