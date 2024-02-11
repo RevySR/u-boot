@@ -259,48 +259,12 @@ int k230_img_boot_sys_bin(firmware_head_s * fhBUff)
 
 //去掉k230 fireware头信息，完整性校验，解密；
 static int k230_check_and_get_plain_data(firmware_head_s *pfh, ulong *pplain_addr)
-{
-
-    uint32_t otp_msc = 0;    
+{  
     int ret = 0;
-    pufs_dgst_st md;
 
-    if(pfh->magic != MAGIC_NUM){
-        printf("magic error %x : %x \n", MAGIC_NUM, pfh->magic);
-        return CMD_RET_FAILURE;
-    }
+    if(pplain_addr) 
+        *pplain_addr = (ulong)pfh + sizeof(*pfh) ; 
 
-    if(pfh->crypto_type == NONE_SECURITY){ 
-        //printf(" NONE_SECURITY \n");
-        if(SUCCESS != cb_pufs_read_otp((uint8_t *)&otp_msc, OTP_BLOCK_PRODUCT_MISC_BYTES, OTP_BLOCK_PRODUCT_MISC_ADDR)){
-            printf("otp read error \n");
-            return -4;
-        }
-        if(otp_msc & 0x1){
-            printf(" NONE_SECURITY not support  %x \n", pfh->crypto_type);
-            return -5;
-        }       
-        //校验完整性
-        #ifdef  CONFIG_K230_PUFS
-		cb_pufs_hash(&md, (const uint8_t*)(pfh + 1), pfh->length, SHA_256);
-        #else 
-        sha256_csum_wd((const uint8_t*)(pfh + 1), pfh->length, md.dgst, CHUNKSZ_SHA256);
-        #endif   
-
-        if(memcmp(md.dgst, pfh->verify.none_sec.signature, SHA256_SUM_LEN) ){
-            printf("sha256 error ");
-            return -3; 
-        }   
-            
-
-        if(pplain_addr) 
-            *pplain_addr = (ulong)pfh + sizeof(*pfh) ; 
-
-        ret = 0;    
-	} else  {
-        printf("error crypto type =%x\n", pfh->crypto_type);
-        return -9;
-    } 
     return ret;
 }
 
@@ -355,11 +319,6 @@ static int k230_load_sys_from_mmc_or_sd(en_boot_sys_t sys, ulong buff)//(ulong o
     ret = blk_dread(pblk_desc, blk_s , HD_BLK_NUM, (char *)buff);
     if(ret != HD_BLK_NUM)
         return 4;
-
-    if(pfh->magic != MAGIC_NUM){
-        K230_dbg("pfh->magic 0x%x != 0x%x blk=0x%lx buff=0x%lx  ", pfh->magic, MAGIC_NUM, blk_s, buff);
-        return 5;
-    }
 
     data_sect = DIV_ROUND_UP(pfh->length + sizeof(*pfh), BLKSZ) - HD_BLK_NUM;
 	
