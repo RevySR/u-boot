@@ -154,7 +154,7 @@ static int  de_reset_big_core(ulong core_run_addr)
     writel(core_run_addr, (void*)0x91102104ULL);//cpu1_hart_rstvec 设置大核的解复位向量，复位后程序执行位置；
     //printf("0x91102104 =%x 0x9110100c=%x\n", readl( (void*)0x91102104ULL), readl( (void*)0x9110100cULL));
 
-    //writel(0x80199805, (void*)0x91100004); //1.6Ghz
+    writel(0x80199805, (void*)0x91100004); //1.6Ghz
 
     writel(0x10001000, (void*)0x9110100cULL); //清 done bit
     writel(0x10001, (void*)0x9110100cULL); //设置 reset bit
