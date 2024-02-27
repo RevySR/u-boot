@@ -38,13 +38,15 @@
 #if defined(CONFIG_TARGET_K230_CANMV)
 #define ENV_K230_BOARD_BOOT \
 	"rv64_k230_cammv=load mmc 1:1 0x0 /k230_cammv_rv64.bin; \0" \
-	"rv64_k230=run rv64_k230_cammv; \0"
+	"rv64ilp32_k230_cammv=load mmc 1:1 0x0 /k230_cammv_rv64ilp32.bin; \0" \
+	"rv64_k230=run rv64ilp32_k230_cammv; \0"
 #endif
 
 #if defined(CONFIG_TARGET_K230_EVB)
 #define ENV_K230_BOARD_BOOT \
 	"rv64_k230_evb=load mmc 1:1 0x0 /k230_evb_rv64.bin; \0" \
-	"rv64_k230=run rv64_k230_evb; \0"
+	"rv64ilp32_k230_evb=load mmc 1:1 0x0 /k230_evb_rv64ilp32.bin; \0" \
+	"rv64_k230=run rv64ilp32_k230_evb; \0"
 #endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
