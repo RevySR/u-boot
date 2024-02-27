@@ -35,6 +35,18 @@
 #define CONFIG_SYS_NS16550_MEM32
 #define DWC2_UTMI_WIDTH 16
 
+#if defined(CONFIG_TARGET_K230_CANMV)
+#define ENV_K230_BOARD_BOOT \
+	"rv64_k230_cammv=load mmc 1:1 0x0 /k230_cammv_rv64.bin; \0" \
+	"rv64_k230=run rv64_k230_cammv; \0"
+#endif
+
+#if defined(CONFIG_TARGET_K230_EVB)
+#define ENV_K230_BOARD_BOOT \
+	"rv64_k230_evb=load mmc 1:1 0x0 /k230_evb_rv64.bin; \0" \
+	"rv64_k230=run rv64_k230_evb; \0"
+#endif
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"dtb_addr=0x2000000 \0" \
 	"fdt_high=0x2100000\0" \
@@ -48,7 +60,9 @@
 	"usb_load=usb start; dhcp; tftp $ramdisk_addr jiangxiangbing/rtt_systems.bin; k230_boot mem $ramdisk_addr 0x$filesize; tftp $kernel_addr jiangxiangbing/fw_payload.img;tftp $ramdisk_addr jiangxiangbing/rootfs-final.cpio.gz;tftp $dtb_addr jiangxiangbing/k230.dtb\0" \
 	"bootcmd_usb=run usb_load; bootm $kernel_addr - $dtb_addr \0" \
 	"bootcmd_baremetal= mmc dev 1; mmc read 0 0x5000 0xa000; boot_baremetal 1 0 1400000;\0" \
-	"bootcmd=k230_boot auto auto_boot; \0" \
+	"k230_go=go 0x0; \0" \
+	ENV_K230_BOARD_BOOT \
+	"bootcmd=run rv64_k230; run k230_go; \0" \
 	"upspiuboot=usb start; dhcp;  tftp 0xc100000 10.10.1.94:wjx/u-boot.img && sf probe 0:0;sf erase 0x80000 0x180000; sf update  0x$fileaddr 0x80000  0x$filesize; \0" \
 	"upspiimg=usb start; dhcp;  tftp 0x9000000 10.10.1.94:wjx/sysimage-spinor32m.img;sf probe 0:0;sf erase 0 0x2000000;sf write   0x$fileaddr  0 0x$filesize; \0" \
 	"upsduboot=usb start; dhcp;  tftp 0xc100000 10.10.1.94:wjx/u-boot.img && mmc dev 1; mmc write  0x$fileaddr 0x1000  0xc00; \0" \
